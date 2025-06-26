@@ -3,6 +3,7 @@
 module smartcontract::smartcontract;
 
 use std::string::String;
+use std::address;
 
 public struct MediaFile has key, store {
     id: UID,
@@ -74,35 +75,57 @@ public enum IdentificationNumberType has store {
 
 
 // Functioinalities of the Land Registry System:
+// Owner Management:
+//     Create a new owner
+public fun create_owner(
+    registry:&mut LandRegistry,
+    ctx: &mut TxContext,
+    name: String,
+    owner_address: address,
+    identification: IdentificationNumberType,
+    identification_number: String,
+){
+    let new_owner = Owner{
+        id:object::new(ctx),
+        name,
+        address:owner_address,
+        identification,
+        identification_number,
+    };
+    vector::push_back(&mut registry.owner, new_owner);
+}
+
+
+
+
 // The land registry system provides functionalities for:
+
 // Owner Management:
 //     Create a new owner
 //     Update owner information
 //     Retrieve owner details
 
-//     Land Management:
-// Create a new land
+// Land Management:
+//     Create a new land
 //     Update land information
 //     Retrieve land details
 //     Assign ownership of a land to an owner
+
 // Transaction Management:
 //     Create a new transaction (e.g., sale, inheritance, gift)
 //     Update transaction status
 //     Retrieve transaction details
+
 // Land Registry Management:
 //     Add a new land to the registry
 //     Update land registry information
 //     Retrieve land registry details
+
 // Coordinate Indexing:
 //     Create a coordinate index for efficient land lookup
 //     Retrieve lands based on coordinates
 
 
-// functions:
-// transfer_ownership
-// update_land_registry_information
-// verify_ownership
-// retrive_land_data
 
 // Security features:
 // Access Control
