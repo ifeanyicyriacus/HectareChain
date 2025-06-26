@@ -18,8 +18,7 @@ public struct Transaction has key, store{
     from:address,
     to:address,
     land_id: UID,
-    transfer_type:String, // e.g., "sale", "inheritance", "gift", "lease", "mortgage",
-    // transfer_type can be an enum or a string
+    transfer_type:TransferType,
     transfer_amount_ngn_kobo: u64, // in smallest currency unit, e.g., wei for Ethereum
     documents: vector<MediaFile>,
 }
@@ -35,7 +34,15 @@ public struct Land has key, store {
     owner_id:address,
     coordinates: vector<Point>,
     area_in_sqm:u64,
-    ownership_history:vector<Transaction>,
+    ownership_history:vector<UID>, // List of transaction IDs representing ownership changes
+}
+
+public struct Owner has key, store {
+    id:UID,
+    name: String,
+    address: address,
+    identification: IdentificationNumberType,
+    identification_number: String, // National Identification Number
 }
 
 public struct PointLandPair has store{
@@ -45,31 +52,50 @@ public struct PointLandPair has store{
 
 public struct LandRegistry has key {
     id:UID,
-
-    owner_name:String,
+    owner:vector<Owner>,
     lands: vector<Land>,
+    transactions: vector<Transaction>,
     coordinate_index: vector<PointLandPair>,
 }
 
-public enum TransferType {
+public enum TransferType has store {
     Sale,
     Inheritance,
     Gift,
     Lease,
     Mortgage
 }
+public enum IdentificationNumberType has store {
+    NationalID,
+    Passport,
+    DriverLicense,
+    VoterID,
+}
 
-public struct Owner
 
+// Functioinalities of the Land Registry System:
+// The land registry system provides functionalities for:
+// Owner Management:
+//     Create a new owner
+//     Update owner information
+//     Retrieve owner details
 
-
-
-
-//  You might want to consider using a more efficient data structure for 
-// coordinate_index, such as a hash table or a spatial index, to enable
-// faster lookups.
-
-// enum for transfer type
+//     Land Management:
+// Create a new land
+//     Update land information
+//     Retrieve land details
+//     Assign ownership of a land to an owner
+// Transaction Management:
+//     Create a new transaction (e.g., sale, inheritance, gift)
+//     Update transaction status
+//     Retrieve transaction details
+// Land Registry Management:
+//     Add a new land to the registry
+//     Update land registry information
+//     Retrieve land registry details
+// Coordinate Indexing:
+//     Create a coordinate index for efficient land lookup
+//     Retrieve lands based on coordinates
 
 
 // functions:
