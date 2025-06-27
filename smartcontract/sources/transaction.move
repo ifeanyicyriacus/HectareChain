@@ -15,7 +15,6 @@
 // The module is structured to ensure that all transactions are securely recorded and can be audited.
 module smartcontract::transaction {
     use std::string::String;
-    use sui::object::{UID, ID};
     use smartcontract::media_file::MediaFile;
 
     public struct Transaction has key, store {
@@ -72,7 +71,7 @@ module smartcontract::transaction {
     // Update transaction status
     public entry fun update_transaction_status(
         transaction: &mut Transaction,
-        new_status: TransactionStatus
+        new_status: String
     ) {
         transaction.status = new_status;
     }

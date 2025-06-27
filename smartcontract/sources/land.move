@@ -2,7 +2,6 @@
 // managing land ownership and details in a blockchain environment.
 module smartcontract::land {
     use std::string::String;
-    use sui::object::{UID};
     use smartcontract::point::Point;
 
     public struct Land has key, store {
@@ -12,6 +11,10 @@ module smartcontract::land {
         coordinates: vector<Point>,
         area_in_sqm: u64,
         ownership_history: vector<ID>,
+    }
+
+    public fun get_land_id(land: &Land): String {
+        land.land_id
     }
 
     // Create new land

@@ -1,17 +1,15 @@
 // This module defines a land registry smart contract that allows for the
 // ===== land_registry.move =====
 module smartcontract::land_registry {
-    use sui::object::{UID};
-    use sui::dynamic_field as df;
-    use sui::tx_context::TxContext;
-    use smartcontract::point::{Point, PointLandPair};
+    // use sui::dynamic_field as df;
+    use smartcontract::point::{Point};
     use std::string::String;
+    use sui::dynamic_field::{DynamicField, add, borrow, contains, remove};
 
     public struct LandRegistry has key {
         id: UID,
-        coordinate_index: df::Table<Point, ID>,  // Maps point to Land ID
-        land_records: df::Table<String, address>, // Maps land_id to owner address
-    }
+        coordinate_index: DynamicField<Point, String>,
+        land_records: DynamicField<String, address>,    }
 
     // Initialize land registry
     public entry fun create_land_registry(ctx: &mut TxContext) {
@@ -29,15 +27,17 @@ module smartcontract::land_registry {
         land_id: String,
         coordinates: vector<Point>,
         owner: address,
+        ctx: &mut TxContext
     ) {
         // Add to land records
         df::table::add(&mut registry.land_records, land_id, owner);
         
         // Add to coordinate index
-        let i = 0;
+        let mut i = 0;
         while (i < vector::length(&coordinates)) {
             let point = *vector::borrow(&coordinates, i);
-            df::table::add(&mut registry.coordinate_index, point, object::id_from_address(owner));
+            // df::table::add(&mut registry.coordinate_index, point, object::id_from_address(owner));
+            df::table::add(&mut registry.coordinate_index, point, land_id);
             i = i + 1;
         };
     }
@@ -63,10 +63,10 @@ module smartcontract::land_registry {
     public fun find_lands_by_coordinate(
         registry: &LandRegistry,
         point: Point
-    ): vector<ID> {
+    ): vector<String> {
         if (df::table::contains(&registry.coordinate_index, point)) {
             let land_id = df::table::borrow(&registry.coordinate_index, point);
-            vector::singleton(*land_id)
+            vector::singleton(land_id)
         } else {
             vector::empty()
         }

@@ -2,20 +2,22 @@
 
 // ===== smartcontract.move =====
 module smartcontract::smartcontract {
+    use smartcontract::land::{get_land_id, Land};
     // Main module that aggregates all components
     // This can be used for high-level operations
     // that involve multiple components
     
     public entry fun complete_land_transfer(
-        land: &mut smartcontract::land::Land,
+        land: &mut Land,
         transaction: &mut smartcontract::transaction::Transaction,
         registry: &mut smartcontract::land_registry::LandRegistry,
         new_owner: address
     ) {
         // Update transaction status
+        // Provide the new status as the second argument, e.g., smartcontract::transaction::Status::Completed
         smartcontract::transaction::update_transaction_status(
             transaction, 
-            smartcontract::transaction::Completed);
+            std::string::utf8(b"Completed"));
         
         // Transfer land ownership
         smartcontract::land::transfer_ownership(
@@ -27,7 +29,7 @@ module smartcontract::smartcontract {
         // Update land registry
         smartcontract::land_registry::update_land_record(
             registry,
-            land.land_id,
+            land.get_land_id(),
             new_owner
         );
     }

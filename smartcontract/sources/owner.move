@@ -1,30 +1,22 @@
 // This module defines the Owner structure and related functions 
 // for managing ownership in a smart contract.
-module smartcontract::owner;
+module smartcontract::owner{
     use std::string::String;
-    use sui::object::{UID};
-    use sui::tx_context::TxContext;
 
     public struct Owner has key, store {
         id: UID,
         name: String,
         physical_address: String,
-        identification_type: IdentificationNumberType,
+        identification_type: String,
         identification_number: String,
     }
 
-    public enum IdentificationNumberType has store {
-        NationalID,
-        Passport,
-        DriverLicense,
-        VoterID,
-    }
 
     // Create new owner
     public entry fun create_owner(
         name: String,
         physical_address: String,
-        identification_type: IdentificationNumberType,
+        identification_type: String,
         identification_number: String,
         ctx: &mut TxContext
     ) {
@@ -43,7 +35,7 @@ module smartcontract::owner;
         owner: &mut Owner,
         new_name: String,
         new_address: String,
-        new_identification_type: IdentificationNumberType,
+        new_identification_type: String,
         new_identification_number: String
     ) {
         owner.name = new_name;
@@ -53,7 +45,7 @@ module smartcontract::owner;
     }
 
     // Get owner details
-    public fun get_owner_details(owner: &Owner): (String, String, IdentificationNumberType, String) {
+    public fun get_owner_details(owner: &Owner): (String, String, String, String) {
         (
             owner.name,
             owner.physical_address,
@@ -61,4 +53,4 @@ module smartcontract::owner;
             owner.identification_number
         )
     }
-// }
+}

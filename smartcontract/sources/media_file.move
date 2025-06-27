@@ -1,7 +1,6 @@
 // ===== media_file.move =====
 module smartcontract::media_file {
     use std::string::String;
-    use sui::object::{UID};
 
     public struct MediaFile has key, store {
         id: UID,
