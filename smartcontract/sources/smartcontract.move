@@ -1,5 +1,38 @@
 // The land registry system provides functionalities for:
 
+// ===== smartcontract.move =====
+module smartcontract::smartcontract {
+    // Main module that aggregates all components
+    // This can be used for high-level operations
+    // that involve multiple components
+    
+    public entry fun complete_land_transfer(
+        land: &mut smartcontract::land::Land,
+        transaction: &mut smartcontract::transaction::Transaction,
+        registry: &mut smartcontract::land_registry::LandRegistry,
+        new_owner: address
+    ) {
+        // Update transaction status
+        smartcontract::transaction::update_transaction_status(
+            transaction, 
+            smartcontract::transaction::Completed);
+        
+        // Transfer land ownership
+        smartcontract::land::transfer_ownership(
+            land, 
+            object::id(transaction), 
+            new_owner
+        );
+        
+        // Update land registry
+        smartcontract::land_registry::update_land_record(
+            registry,
+            land.land_id,
+            new_owner
+        );
+    }
+}
+
 // Owner Management:
 //     Create a new owner
 //     Update owner information
