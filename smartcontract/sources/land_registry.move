@@ -1,22 +1,24 @@
 // This module defines a land registry smart contract that allows for the
 // ===== land_registry.move =====
 module smartcontract::land_registry {
-    // use sui::dynamic_field as df;
-    use smartcontract::point::{Point};
+    use sui::dynamic_field as df;
     use std::string::String;
-    use sui::dynamic_field::{DynamicField, add, borrow, contains, remove};
+
+    public struct LandInfo has store{
+        land_id:String,
+        owner: address,
+    }
 
     public struct LandRegistry has key {
         id: UID,
-        coordinate_index: DynamicField<Point, String>,
-        land_records: DynamicField<String, address>,    }
+        land_id_index:UID,
+    }
 
     // Initialize land registry
     public entry fun create_land_registry(ctx: &mut TxContext) {
         let registry = LandRegistry {
             id: object::new(ctx),
-            coordinate_index: df::table::new(ctx),
-            land_records: df::table::new(ctx),
+            land_id_index: object::new(ctx),
         };
         transfer::share_object(registry);
     }
@@ -24,51 +26,56 @@ module smartcontract::land_registry {
     // Add land to registry and build coordinate index
     public entry fun add_land_to_registry(
         registry: &mut LandRegistry,
+        //If you need to add multiple points, call this function multiple times from the client.
+        lon: String,
+        lat: String,
         land_id: String,
-        coordinates: vector<Point>,
-        owner: address,
-        ctx: &mut TxContext
+        owner:address,
+        _ctx: &mut TxContext
     ) {
-        // Add to land records
-        df::table::add(&mut registry.land_records, land_id, owner);
+        // Build coordinate string key
+        let mut coordinates = b"lon: ".to_string();
+        coordinates.append(lon);
+        coordinates.append(b" & ".to_string());
+        coordinates.append(b"lat: ".to_string());
+        coordinates.append(lat);
         
-        // Add to coordinate index
-        let mut i = 0;
-        while (i < vector::length(&coordinates)) {
-            let point = *vector::borrow(&coordinates, i);
-            // df::table::add(&mut registry.coordinate_index, point, object::id_from_address(owner));
-            df::table::add(&mut registry.coordinate_index, point, land_id);
-            i = i + 1;
-        };
-    }
+        let info = LandInfo { land_id: land_id, owner };
+        // Add to coordinates → LandInfo
+        df::add(&mut registry.id, coordinates, info);
+        // Add to land_id → coordinates
+        df::add(&mut registry.land_id_index, land_id, coordinates);
+        }
 
     // Update land registry information
-    public entry fun update_land_record(
+    // this is a sui move edition 2024 code, convert the table here to dynamic field
+      public entry fun update_land_record(
         registry: &mut LandRegistry,
         land_id: String,
         new_owner: address
     ) {
-        if (df::table::contains(&registry.land_records, land_id)) {
-            let record = df::table::borrow_mut(&mut registry.land_records, land_id);
-            *record = new_owner;
-        };
+        let coordinates = df::borrow<String, String>(&registry.land_id_index, land_id);
+        let mut info = df::remove<String, LandInfo>(&mut registry.id, *coordinates);
+        info.owner = new_owner;
+        df::add<String, LandInfo>(&mut registry.id, *coordinates, info);
     }
 
-    // Get land owner by land_id
-    public fun get_land_owner(registry: &LandRegistry, land_id: String): &address {
-        df::table::borrow(&registry.land_records, land_id)
+    /// Get the owner address for a given land_id.
+    public fun get_land_owner(
+        registry: &LandRegistry, 
+        land_id: String
+    ): &address {
+        let coordinates = df::borrow<String, String>(&registry.land_id_index, land_id);
+        let info = df::borrow<String, LandInfo>(&registry.id, *coordinates);
+        &info.owner
     }
 
-    // Find lands by coordinate point
-    public fun find_lands_by_coordinate(
+   public fun find_lands_by_coordinate(
         registry: &LandRegistry,
-        point: Point
+        coordinates: String
     ): vector<String> {
-        if (df::table::contains(&registry.coordinate_index, point)) {
-            let land_id = df::table::borrow(&registry.coordinate_index, point);
-            vector::singleton(land_id)
-        } else {
-            vector::empty()
-        }
+        // No contains, so we try to borrow and catch error (not shown here)
+        let info = df::borrow<String, LandInfo>(&registry.id, coordinates);
+        vector::singleton(info.land_id)
     }
 }

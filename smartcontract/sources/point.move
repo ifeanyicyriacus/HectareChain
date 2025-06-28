@@ -4,7 +4,7 @@ module smartcontract::point{
         longitude: u64,
         latitude: u64,
     }
-
+// string to point function
 
     // Create point
     public fun create_point(longitude: u64, latitude: u64): Point {
