@@ -126,7 +126,7 @@ export default function LoginPage() {
                       Continue with Google
                     </Button>
 
-                    <Button
+                    {/* <Button
                       onClick={() => handleUserLogin("facebook")}
                       disabled={isLoading}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
@@ -137,7 +137,7 @@ export default function LoginPage() {
                         <Facebook className="w-4 h-4 mr-2" />
                       )}
                       Continue with Facebook
-                    </Button>
+                    </Button> */}
                   </div>
 
                   <div className="text-center text-xs text-slate-400 mt-4">
