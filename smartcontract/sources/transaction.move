@@ -14,8 +14,8 @@
 
 // The module is structured to ensure that all transactions are securely recorded and can be audited.
 module smartcontract::transaction {
-    use std::string::String;
     use smartcontract::media_file::MediaFile;
+    use smartcontract::media_file::get_id;
 
     public struct Transaction has key, store {
         id: UID,
@@ -29,7 +29,11 @@ module smartcontract::transaction {
         status: TransactionStatus,
     }
 
-    public enum TransferType has store {
+    public fun get_id(transaction: &mut Transaction):&UID{
+        &transaction.id
+    }
+
+    public enum TransferType has copy, drop, store {
         Sale,
         Inheritance,
         Gift,
@@ -37,7 +41,7 @@ module smartcontract::transaction {
         Mortgage
     }
 
-    public enum TransactionStatus has store {
+    public enum TransactionStatus has copy, drop, store {
         Pending,
         Completed,
         Rejected,
@@ -49,37 +53,62 @@ module smartcontract::transaction {
         from: address,
         to: address,
         land_id: ID,
-        transaction_type: TransferType,
+        transaction_type: u8,
         amount: u64,
         documents: vector<MediaFile>,
         ctx: &mut TxContext
     ) {
+        let ttype = if (transaction_type == 0) {
+            TransferType::Sale
+        } else if (transaction_type == 1) {
+            TransferType::Inheritance
+        } else if (transaction_type == 2) {
+            TransferType::Gift
+        } else if (transaction_type == 3) {
+            TransferType::Lease
+        } else if (transaction_type == 4) {
+            TransferType::Mortgage
+        } else {
+            TransferType::Sale
+        };
+
         let transaction = Transaction {
             id: object::new(ctx),
             timestamp: tx_context::epoch(ctx),
             from,
             to,
             land_id,
-            transaction_type,
+            transaction_type: ttype,
             amount,
             documents,
-            status: Pending,
+            status: TransactionStatus::Pending,
         };
+
         transfer::transfer(transaction, tx_context::sender(ctx));
     }
 
     // Update transaction status
     public entry fun update_transaction_status(
         transaction: &mut Transaction,
-        new_status: String
+        transaction_status: u8
     ) {
-        transaction.status = new_status;
+        let status = if (transaction_status == 0) {
+            TransactionStatus::Pending
+        } else if (transaction_status == 1) {
+            TransactionStatus::Completed
+        } else if (transaction_status == 2) {
+            TransactionStatus::Rejected
+        } else if (transaction_status == 0) {
+            TransactionStatus::Cancelled
+        } else { TransactionStatus::Pending
+        };
+        transaction.status = status;
     }
 
     // Get transaction details
     public fun get_transaction_details(
         transaction: &Transaction
-    ): (u64, address, address, ID, TransferType, u64, vector<MediaFile>, TransactionStatus) {
+    ): (u64, address, address, ID, TransferType, u64, TransactionStatus) {
         (
             transaction.timestamp,
             transaction.from,
@@ -87,8 +116,29 @@ module smartcontract::transaction {
             transaction.land_id,
             transaction.transaction_type,
             transaction.amount,
-            transaction.documents,
             transaction.status
         )
+    }
+
+    //Option 1: Return a reference to the vector
+    public fun get_transaction_documents(transaction: &Transaction): &vector<MediaFile> {
+    &transaction.documents}
+
+    //Option 2: Return only the count or IDs
+    public fun get_transaction_document_count(transaction: &Transaction): u64 {
+    vector::length(&transaction.documents)}
+
+    public fun get_transaction_document_uids(transaction: &Transaction): vector<&UID> {
+    let mut uids_refs = vector::empty<&UID>();
+    let docs = &transaction.documents;
+    let len = vector::length(docs);
+    let mut i = 0;
+    while (i < len) {
+        let doc = vector::borrow(docs, i);
+        let uid_ref = media_file::get_id(doc);
+        vector::push_back(&mut uids_refs, uid_ref); // assuming MediaFile has a public field `id: UID` and you have a way to get its ID
+        i = i + 1;
+    };
+    uids_refs
     }
 }
