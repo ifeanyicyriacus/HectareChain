@@ -15,7 +15,6 @@
 // The module is structured to ensure that all transactions are securely recorded and can be audited.
 module smartcontract::transaction {
     use smartcontract::media_file::MediaFile;
-    use smartcontract::media_file::get_id;
 
     public struct Transaction has key, store {
         id: UID,
@@ -29,7 +28,7 @@ module smartcontract::transaction {
         status: TransactionStatus,
     }
 
-    public fun get_id(transaction: &mut Transaction):&UID{
+    public fun get_transaction_id(transaction: &mut Transaction):&UID{
         &transaction.id
     }
 
@@ -128,17 +127,7 @@ module smartcontract::transaction {
     public fun get_transaction_document_count(transaction: &Transaction): u64 {
     vector::length(&transaction.documents)}
 
-    public fun get_transaction_document_uids(transaction: &Transaction): vector<&UID> {
-    let mut uids_refs = vector::empty<&UID>();
-    let docs = &transaction.documents;
-    let len = vector::length(docs);
-    let mut i = 0;
-    while (i < len) {
-        let doc = vector::borrow(docs, i);
-        let uid_ref = media_file::get_id(doc);
-        vector::push_back(&mut uids_refs, uid_ref); // assuming MediaFile has a public field `id: UID` and you have a way to get its ID
-        i = i + 1;
-    };
-    uids_refs
+    public fun get_transaction_document_uids(transaction: &Transaction): &vector<MediaFile> {
+    &transaction.documents
     }
 }

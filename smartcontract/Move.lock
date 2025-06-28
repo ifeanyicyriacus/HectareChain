@@ -41,3 +41,16 @@ dependencies = [
   { id = "MoveStdlib", name = "MoveStdlib" },
   { id = "Sui", name = "Sui" },
 ]
+
+[move.toolchain-version]
+compiler-version = "1.48.1"
+edition = "2024"
+flavor = "sui"
+
+[env]
+
+[env.testnet]
+chain-id = "4c78adac"
+original-published-id = "0xa9621dfa6e36d1987cf2e4378f0db572ca8a7c5a91cd606517ddb87c01beef6f"
+latest-published-id = "0xa9621dfa6e36d1987cf2e4378f0db572ca8a7c5a91cd606517ddb87c01beef6f"
+published-version = "1"
